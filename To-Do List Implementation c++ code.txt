@@ -1,0 +1,189 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+
+using namespace std;
+
+// Structure to represent a task
+struct ToDoList {
+    int id;
+    string task;
+};
+
+// Global variable for task ID
+int ID = 1;
+
+// Function to display the banner
+void banner() {
+    cout << "=============================" << endl;
+    cout << "             To-Do List App  " << endl;
+    cout << "=============================" << endl;
+}
+
+// Function to add a task
+void addTask() {
+    banner();
+    ToDoList todo;
+    cout << "Enter the task description: ";
+    cin.ignore();
+    getline(cin, todo.task);
+    todo.id = ID++;
+    ofstream fout("todo.txt", ios::app);
+    if (fout.is_open()) {
+        fout << todo.id << endl;
+        fout << todo.task << endl;
+        fout.close();
+        cout << "Task added successfully!\n";
+    } else {
+        cout << "Error opening file to write.\n";
+    }
+}
+
+// Function to show all tasks
+void showTask() {
+    banner();
+    ifstream fin("todo.txt");
+    if (fin.is_open()) {
+        ToDoList todo;
+        cout << "Your To-Do List:\n";
+        while (fin >> todo.id) {
+            fin.ignore();
+            getline(fin, todo.task);
+            cout << "ID: " << todo.id << " - Task: " << todo.task << endl;
+        }
+        fin.close();
+    } else {
+        cout << "Error opening file to read.\n";
+    }
+}
+
+// Function to search for a task by ID
+int searchTask(int searchID) {
+    ifstream fin("todo.txt");
+    if (fin.is_open()) {
+        ToDoList todo;
+        while (fin >> todo.id) {
+            fin.ignore();
+            getline(fin, todo.task);
+            if (todo.id == searchID) {
+                cout << "Task Found: " << todo.task << endl;
+                fin.close();
+                return searchID;
+            }
+        }
+        fin.close();
+    }
+    cout << "Task not found.\n";
+    return 0;
+}
+
+// Function to delete a task
+void deleteTask() {
+    banner();
+    cout << "Enter the ID of the task to delete: ";
+    int deleteID;
+    cin >> deleteID;
+    if (searchTask(deleteID)) {
+        ifstream fin("todo.txt");
+        ofstream fout("temp.txt");
+        if (fin.is_open() && fout.is_open()) {
+            ToDoList todo;
+            while (fin >> todo.id) {
+                fin.ignore();
+                getline(fin, todo.task);
+                if (todo.id != deleteID) {
+                    fout << todo.id << endl;
+                    fout << todo.task << endl;
+                }
+            }
+            fin.close();
+            fout.close();
+            remove("todo.txt");
+            rename("temp.txt", "todo.txt");
+            cout << "Task deleted successfully!\n";
+        } else {
+            cout << "Error processing files.\n";
+        }
+    }
+}
+
+// Function to update a task
+void updateTask() {
+    banner();
+    cout << "Enter the ID of the task to update: ";
+    int updateID;
+    cin >> updateID;
+    if (searchTask(updateID)) {
+        cout << "Enter the updated task description: ";
+        cin.ignore();
+        string updatedTask;
+        getline(cin, updatedTask);
+        ifstream fin("todo.txt");
+        ofstream fout("temp.txt");
+        if (fin.is_open() && fout.is_open()) {
+            ToDoList todo;
+            while (fin >> todo.id) {
+                fin.ignore();
+                getline(fin, todo.task);
+                if (todo.id == updateID) {
+                    fout << todo.id << endl;
+                    fout << updatedTask << endl;
+                } else {
+                    fout << todo.id << endl;
+                    fout << todo.task << endl;
+                }
+            }
+            fin.close();
+            fout.close();
+            remove("todo.txt");
+            rename("temp.txt", "todo.txt");
+            cout << "Task updated successfully!\n";
+        } else {
+            cout << "Error processing files.\n";
+        }
+    }
+}
+
+// Main function
+int main() {
+    while (true) {
+        banner();
+        cout << "1. Add Task\n";
+        cout << "2. Show Tasks\n";
+        cout << "3. Search Task\n";
+        cout << "4. Delete Task\n";
+        cout << "5. Update Task\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        int choice;
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                addTask();
+                break;
+            case 2:
+                showTask();
+                break;
+            case 3: {
+                cout << "Enter the ID of the task to search: ";
+                int searchID;
+                cin >> searchID;
+                searchTask(searchID);
+                break;
+            }
+            case 4:
+                deleteTask();
+                break;
+            case 5:
+                updateTask();
+                break;
+            case 6:
+                cout << "Exiting the program. Goodbye!\n";
+                return 0;
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
+    }
+}
